@@ -1,3 +1,4 @@
+/* eslint-disable prettier/prettier */
 import {JSONSchema4Type} from 'json-schema'
 
 export type AST_TYPE = AST['type']
@@ -50,15 +51,18 @@ export function hasStandaloneName(ast: AST): ast is ASTWithStandaloneName {
 
 export interface TAny extends AbstractAST {
   type: 'ANY'
+  readonly: boolean
 }
 
 export interface TArray extends AbstractAST {
   type: 'ARRAY'
   params: AST
+  readonly: boolean
 }
 
 export interface TBoolean extends AbstractAST {
   type: 'BOOLEAN'
+  readonly: boolean
 }
 
 export interface TEnum extends AbstractAST {
@@ -76,6 +80,7 @@ export interface TInterface extends AbstractAST {
   type: 'INTERFACE'
   params: TInterfaceParam[]
   superTypes: TNamedInterface[]
+  readonly: boolean
 }
 
 export interface TNamedInterface extends AbstractAST {
@@ -83,6 +88,7 @@ export interface TNamedInterface extends AbstractAST {
   type: 'INTERFACE'
   params: TInterfaceParam[]
   superTypes: TNamedInterface[]
+  readonly: boolean
 }
 
 export interface TNever extends AbstractAST {
@@ -95,6 +101,7 @@ export interface TInterfaceParam {
   isRequired: boolean
   isPatternProperty: boolean
   isUnreachableDefinition: boolean
+  readonly: boolean
 }
 
 export interface TIntersection extends AbstractAST {
@@ -109,14 +116,17 @@ export interface TLiteral extends AbstractAST {
 
 export interface TNumber extends AbstractAST {
   type: 'NUMBER'
+  readonly: boolean
 }
 
 export interface TNull extends AbstractAST {
   type: 'NULL'
+  readonly: boolean
 }
 
 export interface TObject extends AbstractAST {
   type: 'OBJECT'
+  readonly: boolean
 }
 
 export interface TReference extends AbstractAST {
@@ -126,6 +136,7 @@ export interface TReference extends AbstractAST {
 
 export interface TString extends AbstractAST {
   type: 'STRING'
+  readonly: boolean
 }
 
 export interface TTuple extends AbstractAST {
@@ -134,6 +145,7 @@ export interface TTuple extends AbstractAST {
   spreadParam?: AST
   minItems: number
   maxItems?: number
+  readonly: boolean
 }
 
 export interface TUnion extends AbstractAST {
@@ -148,24 +160,27 @@ export interface TUnknown extends AbstractAST {
 export interface TCustomType extends AbstractAST {
   type: 'CUSTOM_TYPE'
   params: string
+  readonly: boolean
 }
 
 ////////////////////////////////////////////     literals
 
 export const T_ANY: TAny = {
   type: 'ANY',
+  readonly: false
 }
 
 export const T_ANY_ADDITIONAL_PROPERTIES: TAny & ASTWithName = {
   keyName: '[k: string]',
   type: 'ANY',
+  readonly: false
 }
 
 export const T_UNKNOWN: TUnknown = {
-  type: 'UNKNOWN',
+  type: 'UNKNOWN'
 }
 
 export const T_UNKNOWN_ADDITIONAL_PROPERTIES: TUnknown & ASTWithName = {
   keyName: '[k: string]',
-  type: 'UNKNOWN',
+  type: 'UNKNOWN'
 }

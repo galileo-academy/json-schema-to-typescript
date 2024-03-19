@@ -1,0 +1,62 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "constants.json",
+  "title": "IConstants",
+  "type": "object",
+  "definitions": {
+      "sortingDirection": {
+          "type": "object",
+          "properties": {
+              "aliases": {
+                  "type": "array",
+                  "items": {
+                      "type": "string"
+                  },
+                  "readOnly": true
+              },
+              "sqlStatement": {
+                  "type": "string",
+                  "readOnly": true
+              }
+          },
+          "additionalProperties": false,
+          "required": ["aliases", "sqlStatement"],
+          "readOnly": true
+      }
+  },
+  "properties": {
+      "$schema": {
+          "type": "string",
+          "readOnly": true
+      },
+      "database": {
+          "type": "object",
+          "properties": {
+              "paginatedTables": {
+                  "type": "object",
+                  "patternProperties": {
+                      ".*": { "type": "string" }
+                  },
+                  "additionalProperties": false,
+                  "readOnly": true
+              },
+              "sortingDirections": {
+                  "type": "object",
+                  "properties": {
+                      "ascending": { "$ref": "#/definitions/sortingDirection" },
+                      "descending": { "$ref": "#/definitions/sortingDirection" }
+                  },
+                  "additionalProperties": false,
+                  "required": ["ascending", "descending"],
+                  "readOnly": true
+              }
+          },
+          "required": ["paginatedTables", "sortingDirections"],
+          "additionalProperties": false,
+          "readOnly": true
+      }
+  },
+  "required": ["database"],
+  "additionalProperties": false,
+  "readOnly": true
+}

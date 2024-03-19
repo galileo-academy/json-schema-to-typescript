@@ -1,3 +1,4 @@
+/* eslint-disable prettier/prettier */
 import {JSONSchema4, JSONSchema4Type, JSONSchema4TypeName} from 'json-schema'
 import {isPlainObject, memoize} from 'lodash'
 
@@ -92,6 +93,7 @@ export interface NormalizedJSONSchema extends LinkedJSONSchema {
   oneOf?: NormalizedJSONSchema[]
   not?: NormalizedJSONSchema
   required: string[]
+  readOnly: boolean
 
   // Removed by normalizer
   definitions: never

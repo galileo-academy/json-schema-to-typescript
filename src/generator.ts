@@ -17,6 +17,12 @@ import {
 import {log, toSafeString} from './utils'
 
 export function generate(ast: AST, options = DEFAULT_OPTIONS): string {
+  const result = declareNamedTypes(ast, options, ast.standaloneName!)
+  const interfaces = declareNamedInterfaces(ast, options, ast.standaloneName!)
+
+  // console.log(`named types: ${result}`)
+  // console.log(`named interfaces: ${interfaces}`)
+
   return (
     [
       options.bannerComment,
@@ -71,17 +77,17 @@ function declareNamedInterfaces(ast: AST, options: Options, rootASTName: string,
       type = declareNamedInterfaces((ast as TArray).params, options, rootASTName, processed)
       break
     case 'INTERFACE':
-      type = [
+      const val0 =
         hasStandaloneName(ast) &&
-          (ast.standaloneName === rootASTName || options.declareExternallyReferenced) &&
-          generateStandaloneInterface(ast, options),
-        getSuperTypesAndParams(ast)
-          .map(ast => declareNamedInterfaces(ast, options, rootASTName, processed))
-          .filter(Boolean)
-          .join('\n'),
-      ]
+        (ast.standaloneName === rootASTName || options.declareExternallyReferenced) &&
+        generateStandaloneInterface(ast, options)
+
+      const val1 = getSuperTypesAndParams(ast)
+        .map(ast => declareNamedInterfaces(ast, options, rootASTName, processed))
         .filter(Boolean)
         .join('\n')
+
+      type = [val0, val1].filter(Boolean).join('\n')
       break
     case 'INTERSECTION':
     case 'TUPLE':
@@ -110,12 +116,13 @@ function declareNamedTypes(ast: AST, options: Options, rootASTName: string, proc
 
   switch (ast.type) {
     case 'ARRAY':
-      return [
+      const result = [
         declareNamedTypes(ast.params, options, rootASTName, processed),
         hasStandaloneName(ast) ? generateStandaloneType(ast, options) : undefined,
       ]
         .filter(Boolean)
         .join('\n')
+      return result
     case 'ENUM':
       return ''
     case 'INTERFACE':
@@ -174,7 +181,8 @@ function generateRawType(ast: AST, options: Options): string {
     case 'ARRAY':
       return (() => {
         const type = generateType(ast.params, options)
-        return type.endsWith('"') ? '(' + type + ')[]' : type + '[]'
+        const result = type.endsWith('"') ? '(' + type + ')[]' : type + '[]'
+        return `${ast.readonly ? 'readonly ' : ''}${result}`
       })()
     case 'BOOLEAN':
       return 'boolean'
@@ -305,7 +313,7 @@ function generateInterface(ast: TInterface, options: Options): string {
       .map(
         ([isRequired, keyName, ast, type]) =>
           (hasComment(ast) && !ast.standaloneName ? generateComment(ast.comment, ast.deprecated) + '\n' : '') +
-          escapeKeyName(keyName) +
+          escapeKeyName(keyName, ast) +
           (isRequired ? '' : '?') +
           ': ' +
           type,
@@ -362,13 +370,17 @@ function generateStandaloneType(ast: ASTWithStandaloneName, options: Options): s
   )
 }
 
-function escapeKeyName(keyName: string): string {
+function escapeKeyName(keyName: string, ast: AST): string {
+  const readonly =
+    Object.keys(ast).includes('readonly') &&
+    Object.entries(ast).find(([key, value], index, obj) => key === 'readonly')?.[1]
   if (keyName.length && /[A-Za-z_$]/.test(keyName.charAt(0)) && /^[\w$]+$/.test(keyName)) {
-    return keyName
+    return `${readonly ? 'readonly ' : ''}${keyName}`
   }
   if (keyName === '[k: string]') {
     return keyName
   }
+
   return JSON.stringify(keyName)
 }
 

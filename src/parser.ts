@@ -113,6 +113,7 @@ function parseBooleanSchema(schema: boolean, keyName: string | undefined, option
     return {
       keyName,
       type: options.unknownAny ? 'UNKNOWN' : 'ANY',
+      readonly: false,
     }
   }
 
@@ -140,6 +141,7 @@ function parseNonLiteral(
 ): AST {
   const definitions = getDefinitionsMemoized(getRootSchema(schema as any)) // TODO
   const keyNameFromDefinition = findKey(definitions, _ => _ === schema)
+  const isReadOnly = schema['readOnly']
 
   switch (type) {
     case 'ALL_OF':
@@ -175,6 +177,7 @@ function parseNonLiteral(
         keyName,
         standaloneName: standaloneName(schema, keyNameFromDefinition, usedNames),
         type: 'BOOLEAN',
+        readonly: isReadOnly,
       }
     case 'CUSTOM_TYPE':
       return {
@@ -184,6 +187,7 @@ function parseNonLiteral(
         params: schema.tsType!,
         standaloneName: standaloneName(schema, keyNameFromDefinition, usedNames),
         type: 'CUSTOM_TYPE',
+        readonly: isReadOnly,
       }
     case 'NAMED_ENUM':
       return {
@@ -214,6 +218,7 @@ function parseNonLiteral(
         keyName,
         standaloneName: standaloneName(schema, keyNameFromDefinition, usedNames),
         type: 'NULL',
+        readonly: isReadOnly,
       }
     case 'NUMBER':
       return {
@@ -222,6 +227,7 @@ function parseNonLiteral(
         keyName,
         standaloneName: standaloneName(schema, keyNameFromDefinition, usedNames),
         type: 'NUMBER',
+        readonly: isReadOnly,
       }
     case 'OBJECT':
       return {
@@ -230,6 +236,7 @@ function parseNonLiteral(
         standaloneName: standaloneName(schema, keyNameFromDefinition, usedNames),
         type: 'OBJECT',
         deprecated: schema.deprecated,
+        readonly: isReadOnly,
       }
     case 'ONE_OF':
       return {
@@ -249,6 +256,7 @@ function parseNonLiteral(
         keyName,
         standaloneName: standaloneName(schema, keyNameFromDefinition, usedNames),
         type: 'STRING',
+        readonly: isReadOnly,
       }
     case 'TYPED_ARRAY':
       if (Array.isArray(schema.items)) {
@@ -264,6 +272,7 @@ function parseNonLiteral(
           standaloneName: standaloneName(schema, keyNameFromDefinition, usedNames),
           params: schema.items.map(_ => parse(_, options, undefined, processed, usedNames)),
           type: 'TUPLE',
+          readonly: isReadOnly,
         }
         if (schema.additionalItems === true) {
           arrayType.spreadParam = options.unknownAny ? T_UNKNOWN : T_ANY
@@ -279,6 +288,7 @@ function parseNonLiteral(
           standaloneName: standaloneName(schema, keyNameFromDefinition, usedNames),
           params: parse(schema.items!, options, `{keyNameFromDefinition}Items`, processed, usedNames),
           type: 'ARRAY',
+          readonly: isReadOnly,
         }
       }
     case 'UNION':
@@ -322,6 +332,7 @@ function parseNonLiteral(
           spreadParam: maxItems >= 0 ? undefined : params,
           standaloneName: standaloneName(schema, keyNameFromDefinition, usedNames),
           type: 'TUPLE',
+          readonly: isReadOnly,
         }
       }
 
@@ -332,6 +343,7 @@ function parseNonLiteral(
         params,
         standaloneName: standaloneName(schema, keyNameFromDefinition, usedNames),
         type: 'ARRAY',
+        readonly: isReadOnly,
       }
   }
 }
@@ -367,6 +379,7 @@ function newInterface(
     standaloneName: name,
     superTypes: parseSuperTypes(schema, options, processed, usedNames),
     type: 'INTERFACE',
+    readonly: schema.readOnly,
   }
 }
 
@@ -401,6 +414,7 @@ function parseSchema(
     isRequired: includes(schema.required || [], key),
     isUnreachableDefinition: false,
     keyName: key,
+    readonly: schema.readOnly,
   }))
 
   let singlePatternProperty = false
@@ -422,6 +436,7 @@ via the \`patternProperty\` "${key.replace('*/', '*\\/')}".`
           isRequired: singlePatternProperty || includes(schema.required || [], key),
           isUnreachableDefinition: false,
           keyName: singlePatternProperty ? '[k: string]' : key,
+          readonly: schema.readOnly,
         }
       }),
     )
@@ -440,6 +455,7 @@ via the \`definition\` "${key}".`
           isRequired: includes(schema.required || [], key),
           isUnreachableDefinition: true,
           keyName: key,
+          readonly: schema.readOnly,
         }
       }),
     )
@@ -458,6 +474,7 @@ via the \`definition\` "${key}".`
         isRequired: true,
         isUnreachableDefinition: false,
         keyName: '[k: string]',
+        readonly: schema.readOnly,
       })
 
     case false:
@@ -472,6 +489,7 @@ via the \`definition\` "${key}".`
         isRequired: true,
         isUnreachableDefinition: false,
         keyName: '[k: string]',
+        readonly: schema.readOnly,
       })
   }
 }
